@@ -2,29 +2,35 @@
     <div class="container">
         <header>
             <h1>Todos</h1>
-            <input type="text" class="new-todo" v-model="newTodo" @keyup.enter="addTodo" placeholder="What needs to be done?" />
+            <input type="text" class="new-task" v-model="newTask" @keyup.enter="addTodo" placeholder="What needs to be done?" />
         </header>
         <section class="main" v-show="filteredTodos.length && hasTodos">
             <input type="checkbox" class="toggle-all" id="checkAll" v-model="allDone" /><label for="checkAll"></label>
-            <ul class="todo-list">
-                <li class="todo" v-for="(todo, id) in filteredTodos" :key="id" :class="{ editing: todo === editing }">
+            <ul class="task-list">
+                <li class="task" v-for="(task, id) in filteredTodos" :key="id" :class="{ editing: task === editing }">
                     <div class="view">
-                        <input class="toggle" type="checkbox" v-model="todo.completed" />
-                        <label :class="{ completed: todo.completed }" @dblclick="editTodo(todo)">{{ todo.name }}</label>
-                        <button class="destroy" @click.prevent="removeTodo(todo)"></button>
+                        <input class="toggle" type="checkbox" v-model="task.completed" />
+                        <label :class="{ completed: task.completed }" @dblclick="editTodo(task)">{{ task.name }}</label>
+                        <button class="destroy" @click.prevent="removeTodo(task)"></button>
                     </div>
-                    <input type="text" class="edit" v-model="todo.name" @keyup.enter="doneEdit" />
+                    <input type="text" class="edit" v-model="task.name" @keyup.enter="doneEdit" @blur="doneEdit"/>
                 </li>
             </ul>
         </section>
         <footer class="footer" v-show="hasTodos">
-            <span class="todo-count">
+            <span class="task-count">
                 <strong>{{ remaining }} {{ remaining > 1 ? "items" : "item" }}</strong></span
             >
             <ul class="filters">
-                <li><a href="#" :class="{ selected: filter === 'all' }" @click.prevent="filter = 'all'">All</a></li>
-                <li><a href="#" :class="{ selected: filter === 'todo' }" @click.prevent="filter = 'todo'">Active</a></li>
-                <li><a href="#" :class="{ selected: filter === 'done' }" @click.prevent="filter = 'done'">Completed</a></li>
+                <li>
+                    <a href="#" :class="{ selected: filter === 'all' }" @click.prevent="filter = 'all'">All</a>
+                </li>
+                <li>
+                    <a href="#" :class="{ selected: filter === 'task' }" @click.prevent="filter = 'task'">Active</a>
+                </li>
+                <li>
+                    <a href="#" :class="{ selected: filter === 'done' }" @click.prevent="filter = 'done'">Completed</a>
+                </li>
             </ul>
             <button class="clear-completed" v-show="completed" @click.prevent="deleteCompleted">Delete completed</button>
         </footer>
@@ -32,32 +38,63 @@
 </template>
 
 <script setup>
-import { reactive, computed, ref } from "vue";
-//State
-const newTodo = ref("");
-const todos = reactive([
-    {
-        name: "",
-        completed: false,
-    },
-]);
+import { reactive, computed, ref, nextTick } from "vue";
+//Data
+const newTask = ref("");
+const todos = reactive([]);
 const filter = ref("all");
 const editing = ref(null);
+const editInput = ref(null)
 
+/*==================Computed=================*/
+const remaining = computed(() => {
+    return todos.filter((task) => !task.completed).length;
+});
+
+const completed = computed(() => {
+    return todos.filter((task) => task.completed).length;
+});
+
+const allDone = computed({
+    get() {
+        return remaining === 0;
+    },
+
+    set(value) {
+        todos.forEach((task) => {
+            task.completed = value;
+        });
+    },
+});
+
+const filteredTodos = computed(() => {
+    if (filter.value === "task") {
+        return todos.filter((task) => !task.completed);
+    } else if (filter.value === "done") {
+        return todos.filter((task) => task.completed);
+    }
+    return todos;
+});
+
+const hasTodos = computed(() => {
+    return todos.length > 0;
+});
+
+/*===================Methods=================*/
 //Ajouter une nouvelle tâche
 function addTodo() {
-    if (newTodo.value !== "") {
+    if (newTask.value.trim() !== "") {
         todos.push({
-            name: newTodo.value,
+            name: newTask.value,
             completed: false,
         });
     }
-    newTodo.value = "";
+    newTask.value = "";
 }
 
 //supprimer une tâche
-function removeTodo(todo) {
-    const index = todos.findIndex((t) => t.name === todo.name);
+function removeTodo(task) {
+    const index = todos.indexOf(task);
     if (index !== -1) {
         todos.splice(index, 1);
     }
@@ -65,54 +102,30 @@ function removeTodo(todo) {
 
 //supprimer les tâches qui sont faites
 function deleteCompleted() {
-    todos.filter((todo) => todo.completed).forEach((todo) => removeTodo(todo));
+    const completedTodos = todos.filter((task) => task.completed);
+    for (const task of completedTodos) {
+        removeTodo(task);
+    }
 }
 
 //Editer une tâche
-function editTodo(todo) {
-    editing.value = todo;
+function editTodo(task) {
+    editing.value = task;
+    nextTick(() => {
+        const element = document.querySelector(".editing .edit")
+        element.focus()
+
+    })
 }
 
+//Cancel edit
 function doneEdit() {
-    editing.value = null;
+    if (editing.value.name.trim() !== "") {
+        editing.value = null;
+    } else {
+        removeTodo(editing.value);
+    }
 }
-
-const remaining = computed(() => {
-    return todos.filter((todo) => !todo.completed && todo.name !== "").length;
-});
-
-const completed = computed(() => {
-    return todos.filter((todo) => todo.completed).length;
-});
-
-//filtrer les tâches par categeories (tout/faite/ à faires)
-let filteredTodos = computed(() => {
-    if (filter.value === "todo") {
-        return todos.filter((todo) => !todo.completed);
-    } else if (filter.value === "done") {
-        return todos.filter((todo) => todo.completed);
-    }
-    return todos.filter(todo => todo !== todos[0]);
-});
-
-//Marquer tout les tâches comme faites ou  comme à faire
-const allDone = computed({
-    get() {
-        return remaining === 0;
-    },
-
-    set(value) {
-        todos.forEach((todo) => {
-            todo.completed = value;
-        });
-    },
-});
-
-const hasTodos = computed(() => {
-    if ((todos.length -1 )> 0 ) {
-        return todos.length > 0;
-    }
-});
 </script>
 
 <style scoped>
@@ -132,7 +145,7 @@ const hasTodos = computed(() => {
     color: rgb(217, 4, 41, 0.5);
 }
 
-.new-todo,
+.new-task,
 .edit {
     position: relative;
     color: #333;
@@ -149,29 +162,11 @@ const hasTodos = computed(() => {
     display: none;
 }
 
-/*.edit {
-	position: relative;
-	margin: 0;
-	width: 100%;
-	font-size: 24px;
-	font-family: inherit;
-	font-weight: inherit;
-	line-height: 1.4em;
-	border: 0;
-	color: inherit;
-	padding: 6px;
-	border: 1px solid #999;
-	box-shadow: inset 0 -1px 5px 0 rgba(0, 0, 0, 0.2);
-	box-sizing: border-box;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}
-*/
-.new-todo[placeholder]:placeholder-shown {
+.new-task[placeholder]:placeholder-shown {
     opacity: 0.2;
 }
 
-.new-todo:focus {
+.new-task:focus {
     outline: none;
 }
 .completed {
@@ -209,7 +204,7 @@ const hasTodos = computed(() => {
     transform: translateY(2px);
 }
 
-.todo-list {
+.task-list {
     font-size: 32px;
     margin-top: 10px;
 }
@@ -229,9 +224,15 @@ const hasTodos = computed(() => {
     display: none;
 }
 
-.todo {
+.task {
     padding-bottom: 15px;
-    /*border-bottom: 1px solid rgb(141, 153, 174, .5);*/
+}
+
+.task label {
+    padding: 0 5px;
+    max-width: 390px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 .view {
     width: 500px;
@@ -336,5 +337,16 @@ const hasTodos = computed(() => {
 
 .selected {
     border: 1px solid rgba(141, 153, 174, 0.5);
+}
+
+.clear-completed {
+    color: inherit;
+    background-color: none;
+    border: none;
+    font-size: inherit;
+}
+
+.clear-completed:hover {
+    text-decoration: underline;
 }
 </style>

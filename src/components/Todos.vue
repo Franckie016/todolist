@@ -1,8 +1,8 @@
 <template>
     <div class="container">
-        <header>
-            <h1>Todos</h1>
-            <input type="text" class="new-task" v-model="newTask" @keyup.enter="addTodo" placeholder="What needs to be done?" />
+        <header class="header">
+            <h1 class="header__title">Todos</h1>
+            <input type="text" class="header__new-task" v-model="newTask" @keyup.enter="addTodo" placeholder="What needs to be done?" />
         </header>
         <section class="main" v-show="filteredTodos.length && hasTodos">
             <input type="checkbox" class="toggle-all" id="checkAll" v-model="allDone" /><label for="checkAll"></label>
@@ -13,7 +13,7 @@
                         <label :class="{ completed: task.completed }" @dblclick="editTodo(task)">{{ task.name }}</label>
                         <button class="destroy" @click.prevent="removeTodo(task)"></button>
                     </div>
-                    <input type="text" class="edit" v-model="task.name" @keyup.enter="doneEdit" @blur="doneEdit"/>
+                    <input type="text" class="edit" v-model="task.name" @keyup.enter="doneEdit" @blur="doneEdit" @keyup.esc="doneEdit" />
                 </li>
             </ul>
         </section>
@@ -21,18 +21,18 @@
             <span class="task-count">
                 <strong>{{ remaining }} {{ remaining > 1 ? "items" : "item" }}</strong></span
             >
-            <ul class="filters">
-                <li>
-                    <a href="#" :class="{ selected: filter === 'all' }" @click.prevent="filter = 'all'">All</a>
+            <ul class="footer__filters">
+                <li class="footer__item">
+                    <a class="footer__link" href="#" :class="{ selected: filter === 'all' }" @click.prevent="filter = 'all'">All</a>
                 </li>
-                <li>
-                    <a href="#" :class="{ selected: filter === 'task' }" @click.prevent="filter = 'task'">Active</a>
+                <li class="footer__item">
+                    <a class="footer__link" href="#" :class="{ selected: filter === 'task' }" @click.prevent="filter = 'task'">Active</a>
                 </li>
-                <li>
-                    <a href="#" :class="{ selected: filter === 'done' }" @click.prevent="filter = 'done'">Completed</a>
+                <li class="footer__item">
+                    <a class="footer__link" href="#" :class="{ selected: filter === 'done' }" @click.prevent="filter = 'done'">Completed</a>
                 </li>
             </ul>
-            <button class="clear-completed" v-show="completed" @click.prevent="deleteCompleted">Delete completed</button>
+            <button class="footer__clear-completed" v-show="completed" @click.prevent="deleteCompleted">Delete completed</button>
         </footer>
     </div>
 </template>
@@ -44,7 +44,6 @@ const newTask = ref("");
 const todos = reactive([]);
 const filter = ref("all");
 const editing = ref(null);
-const editInput = ref(null)
 
 /*==================Computed=================*/
 const remaining = computed(() => {
@@ -112,15 +111,14 @@ function deleteCompleted() {
 function editTodo(task) {
     editing.value = task;
     nextTick(() => {
-        const element = document.querySelector(".editing .edit")
-        element.focus()
-
-    })
+        const element = document.querySelector(".editing .edit");
+        element.focus();
+    });
 }
 
 //Cancel edit
 function doneEdit() {
-    if (editing.value.name.trim() !== "") {
+    if (editing.value !== "") {
         editing.value = null;
     } else {
         removeTodo(editing.value);
@@ -128,9 +126,15 @@ function doneEdit() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import "../assets/styles/libs/mixins.scss";
+@import "../assets/styles/libs/allColors.scss";
+
+$fontSize-primary: 32px;
+
+
 .container {
-    color: rgb(141, 153, 174);
+    color: $color-primary;
     font-family: sans-serif;
     display: flex;
     flex-direction: column;
@@ -139,101 +143,99 @@ function doneEdit() {
     margin-top: 40px;
 }
 
-.container h1 {
-    font-size: 100px;
-    text-align: center;
-    color: rgb(217, 4, 41, 0.5);
+.header {
+    &__title {
+        font-size: 100px;
+        text-align: center;
+        color: rgb($color-secondary, .5);
+    }
+
+    &__new-task {
+        @include inputStyle;
+
+        &[placeholder]:placeholder-shown {
+            opacity: 0.2;
+        }
+
+        &:focus {
+            outline: none;
+        }
+    }
 }
 
-.new-task,
 .edit {
-    position: relative;
-    color: #333;
-    background-color: #edf2f4;
-    font-size: 32px;
-    line-height: 1.4em;
-    padding: 16px 16px 16px 70px;
-    width: 540px;
-    border: none;
-    box-shadow: rgb(109, 118, 134) 0px 3px 10px 0px;
-}
-
-.edit {
+    @include inputStyle;
     display: none;
 }
 
-.new-task[placeholder]:placeholder-shown {
-    opacity: 0.2;
-}
-
-.new-task:focus {
-    outline: none;
-}
 .completed {
-    color: rgba(141, 153, 174, 0.5);
+    color: rgba($color-primary, 0.5);
     text-decoration: line-through;
 }
 
 .main {
-    box-shadow: rgba(141, 153, 174, 0.8) 0px 4px 2px 0px;
+    box-shadow: rgba($color-primary, 0.8) 0px 4px 2px 0px;
     padding: 0 20px;
+
+    & > div:first-child {
+        margin-top: 10px;
+    }
 }
 
-.main > div:first-child {
-    margin-top: 10px;
-}
-
-#checkAll {
+.toggle-all {
     position: absolute;
     opacity: 0;
     width: 0;
+
+    & + label {
+        display: inline-block;
+        font-size: 3rem;
+        cursor: pointer;
+        position: relative;
+        bottom: 75px;
+
+        &::before {
+            content: "\25BC"; /* code pour la flèche vers le bas */
+            display: inline-block;
+            font-size: 0.8em;
+            transform: translateY(2px);
+        }
+    }
 }
 
-#checkAll + label {
-    display: inline-block;
-    font-size: 3rem;
-    cursor: pointer;
-    position: relative;
-    bottom: 75px;
-}
-
-#checkAll + label::before {
-    content: "\25BC"; /* code pour la flèche vers le bas */
-    display: inline-block;
-    font-size: 0.8em;
-    transform: translateY(2px);
-}
 
 .task-list {
-    font-size: 32px;
+    font-size: $fontSize-primary;
     margin-top: 10px;
 }
 
 .editing {
     border-bottom: none;
     padding: 0;
-}
 
-.editing .edit {
-    display: block;
-    width: 506px;
-    padding: 12px 16px;
-    margin: 0 0 0 43px;
-}
-.editing .view {
-    display: none;
+    & .edit {
+        display: block;
+        width: 506px;
+        padding: 12px 16px;
+        margin: 0 0 0 43px;
+    }
+
+    & .view {
+        display: none;
+    }
 }
 
 .task {
     padding-bottom: 15px;
+
+    label {
+        padding: 0 5px;
+        max-width: 390px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
 }
 
-.task label {
-    padding: 0 5px;
-    max-width: 390px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
 .view {
     width: 500px;
     display: flex;
@@ -261,18 +263,19 @@ function doneEdit() {
     opacity: 0.2;
     text-decoration: none;
     outline: none;
-}
 
-.toggle:checked::before {
-    content: "\2714"; /* Code ASCII de l'icône check */
-    display: block;
-    text-align: center;
-    font-size: 35px;
-    line-height: 40px;
-    color: #0f9d58; /* Couleur verte */
-}
-.toggle:checked {
-    opacity: 0.6;
+    &:checked::before {
+        content: "\2714"; /* Code ASCII de l'icône check */
+        display: block;
+        text-align: center;
+        font-size: $fontSize-primary + 2;
+        line-height: 40px;
+        color: #0f9d58; /* Couleur verte */
+    }
+
+    &:checked {
+        opacity: 0.6;
+    }
 }
 
 .destroy {
@@ -282,31 +285,31 @@ function doneEdit() {
     height: 50px;
     border: none;
     cursor: pointer;
-}
 
-/* Créer les deux lignes diagonales qui forment la croix */
-.destroy::before,
-.destroy::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 25px;
-    height: 2px;
-    background-color: #d90429;
-    transform: translate(-50%, -50%) rotate(45deg);
-    opacity: 0.1;
-}
+    /* Créer les deux lignes diagonales qui forment la croix */
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 25px;
+        height: 2px;
+        background-color: #d90429;
+        transform: translate(-50%, -50%) rotate(45deg);
+        opacity: 0.1;
+    }
 
-/* Positionner la première ligne diagonale */
-.destroy::before {
-    transform: translate(-50%, -50%) rotate(-45deg);
-}
+    /* Positionner la première ligne diagonale */
+    &::before {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
 
-/* Ajouter un effet de survol sur le bouton */
-.destroy:hover::before,
-.destroy:hover::after {
-    opacity: 0.5;
+    /* Ajouter un effet de survol sur le bouton */
+    &:hover::before,
+    &:hover::after {
+        opacity: 0.5;
+    }
 }
 
 .footer {
@@ -315,38 +318,40 @@ function doneEdit() {
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
+    font-size: inherit;
 
-.footer .filters {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+    &__filters {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-.footer .filters li {
-    display: inline-block;
-}
+    &__item {
+        display: inline-block;
+    }
 
-.footer .filters li a {
-    outline: none;
-    text-decoration: none;
-    color: inherit;
-    margin: 5px;
-    padding: 3px 7px;
+    &__link {
+        outline: none;
+        text-decoration: none;
+        color: inherit;
+        margin: 5px;
+        padding: 3px 7px;
+    }
+    
+    &__clear-completed {
+        color: inherit;
+        background-color: none;
+        border: none;
+        font-size: inherit;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
 }
 
 .selected {
-    border: 1px solid rgba(141, 153, 174, 0.5);
+    border: 1px solid rgba($color-primary, 0.5);
 }
 
-.clear-completed {
-    color: inherit;
-    background-color: none;
-    border: none;
-    font-size: inherit;
-}
-
-.clear-completed:hover {
-    text-decoration: underline;
-}
 </style>

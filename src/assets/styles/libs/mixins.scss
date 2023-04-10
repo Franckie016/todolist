@@ -1,0 +1,11 @@
+@mixin inputStyle {
+    position: relative;
+    color: #333;
+    background-color: #edf2f4;
+    font-size: $fontSize-primary;
+    line-height: 1.4em;
+    padding: 16px 16px 16px 70px;
+    width: 540px;
+    border: none;
+    box-shadow: rgb(109, 118, 134) 0px 3px 10px 0px;
+}

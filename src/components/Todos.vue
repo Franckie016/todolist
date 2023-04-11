@@ -118,10 +118,10 @@ function editTodo(task) {
 
 //Cancel edit
 function doneEdit() {
-    if (editing.value !== "") {
-        editing.value = null;
+    if (editing.value !== null && editing.value.name.trim() == "") {
+        removeTodo(editing.value)
     } else {
-        removeTodo(editing.value);
+        editing.value = null;
     }
 }
 </script>

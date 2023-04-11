@@ -4,7 +4,8 @@
 
 $fontSize-primary: 32px;
 
-body * {
+* {
+    box-sizing: border-box;
     outline: none;
 }
 

@@ -1,0 +1,273 @@
+
+@import "./libs/mixins.scss";
+@import "./libs/allColors.scss";
+
+$fontSize-primary: 32px;
+
+body * {
+    outline: none;
+}
+
+/*relative position */
+.toggle-all + label, .destroy {
+    position: relative;
+}
+
+/*inline-block*/
+.toggle-all + label, .toggle-all + label::before, .destroy, .footer__item {
+    display: inline-block;
+}
+
+
+.container {
+    color: rgb($color-secondary, .8);
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.header {
+    &__title {
+        font-size: 100px;
+        text-align: center;
+        color: rgb($color-secondary, .6);
+        margin-bottom: 20px;
+    }
+
+    &__new-task {
+        @include inputStyle;
+        width: 540px;
+        padding: 16px 16px 16px 70px;
+
+        &[placeholder]:placeholder-shown {
+            opacity: .8;
+        }
+    }
+}
+
+.completed {
+    color: rgba($color-secondary, 0.5);
+    text-decoration: line-through;
+}
+
+.main {
+    box-shadow: rgba($color-secondary, 0.5) 0px 8px 4px 0px;
+    padding: 0 20px;
+
+    & > div:first-child {
+        margin-top: 10px;
+    }
+}
+
+.toggle-all {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+
+    & + label {
+        font-size: 3rem;
+        cursor: pointer;
+        bottom: 75px;
+        opacity: .5;
+
+        &::before {
+            content: "\25BC"; /* code pour la flèche vers le bas */
+            font-size: 0.8em;
+            transform: translateY(2px);
+        }
+    }
+}
+
+
+.task-list {
+    font-size: $fontSize-primary;
+}
+
+.edit, .editing .view {
+    display: none;
+}
+
+.editing {
+    border-bottom: none;
+    padding: 0;
+
+    & .edit {
+        @include inputStyle;
+        display: block;
+        width: 500px;
+        padding: 12px 16px;
+        margin: 0;
+    }
+}
+
+.task {
+    padding-bottom: 15px;
+
+    label {
+        max-width: 390px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+}
+
+.view {
+    width: 500px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.view *,
+.footer * {
+    display: block;
+}
+
+.toggle {
+    /* Masque l'icône de base */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Définit la taille du cercle */
+    width: 40px;
+    height: 40px;
+    /* Définit la bordure et la couleur de fond */
+    border: 2px solid $color-secondary;
+    border-radius: 50%;
+    background-color: inherit;
+    opacity: 0.2;
+    text-decoration: none;
+
+    &:checked::before {
+        content: "\2714"; /* Code ASCII de l'icône check */
+        display: block;
+        text-align: center;
+        font-size: $fontSize-primary + 2;
+        line-height: 40px;
+        color: #0f9d58; /* Couleur verte */
+    }
+
+    &:checked {
+        opacity: 0.6;
+    }
+}
+
+.destroy {
+    background-color: inherit;
+    width: 50px;
+    height: 50px;
+    border: none;
+    cursor: pointer;
+
+    /* Créer les deux lignes diagonales qui forment la croix */
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 25px;
+        height: 2px;
+        background-color: #f71735;
+        transform: translate(-50%, -50%) rotate(45deg);
+        opacity: 0.3;
+    }
+
+    /* Positionner la première ligne diagonale */
+    &::before {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
+
+    /* Ajouter un effet de survol sur le bouton */
+    &:hover::before,
+    &:hover::after {
+        opacity: 0.7;
+    }
+}
+
+.footer {
+    color: rgb($color-secondary, .4);
+    width: 540px;
+    padding: 17px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: inherit;
+
+    &__filters {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    &__link {
+        text-decoration: none;
+        color: inherit;
+        margin: 5px;
+        padding: 3px 7px;
+    }
+    
+    &__clear-completed {
+        color: inherit;
+        background-color: inherit;
+        border: none;
+        font-size: inherit;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.selected {
+    border: 1px solid rgba($color-secondary, 0.4);
+}
+
+@media screen and (max-width: 768px) {
+    .header__new-task, .main, .footer{
+        width: 370px;
+        font-size: 26px;
+    }
+
+    .header{
+        &__title {
+            font-size: 4rem;
+        }
+        &__new-task {
+            padding: 16px 16px 16px 50px;
+        }
+    }
+
+    .task-list, .editing .edit {
+        font-size: 18px;
+    }
+
+
+    .view {
+        width: 330px;
+
+        & label {
+            max-width: 200px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+    }
+
+    .editing .edit {
+        width: 325px;
+        margin-left: 0;
+    }
+
+    .toggle-all + label {
+        font-size: 2.5rem;
+        bottom: 60px;
+        right: 10px;
+    }
+
+    .footer {
+        font-size: 12px;
+    }
+}
+
